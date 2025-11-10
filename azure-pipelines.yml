@@ -1,0 +1,31 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  imageName: 'mywebapp'
+
+steps:
+- task: Docker@2
+  displayName: 'Build and Push Docker image'
+  inputs:
+    command: 'buildAndPush'
+    repository: '$(imageName)'
+    dockerfile: '**/Dockerfile'
+    containerRegistry: 'MyACRConnection'
+    tags: |
+      latest
+
+- task: SSH@0
+  displayName: 'Deploy to Azure VM'
+  inputs:
+    sshEndpoint: 'MyVMConnection'
+    runOptions: 'inline'
+    inline: |
+      sudo docker login myacr123.azurecr.io -u <ACR_USERNAME> -p <ACR_PASSWORD>
+      sudo docker pull myacr123.azurecr.io/$(imageName):latest
+      sudo docker stop webapp || true
+      sudo docker rm webapp || true
+      sudo docker run -d -p 80:80 --name webapp myacr123.azurecr.io/$(imageName):latest
