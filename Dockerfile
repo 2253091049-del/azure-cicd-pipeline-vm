@@ -1,8 +1,8 @@
-# Use official NGINX image
+# Use Nginx as base image
 FROM nginx:latest
 
-# Copy static website content
-COPY app /usr/share/nginx/html
+# Copy all files from repo root (where Dockerfile is) into Nginx html folder
+COPY . /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80
